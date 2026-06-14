@@ -11,7 +11,12 @@ tokens = [
 
     # Jose Adrian - Fin
     # Andres Saltos - Inicio
-
+    'INT', 'DECIMAL', 'STRING', 'VAR',
+    'PLUS_ASSIGN', 'MINUS_ASSIGN', 'TIMES_ASSIGN', 'DIV_ASSIGN',
+    'SEMICOLON', 'COMMA', 'LPAREN', 'RPAREN', 'LBRACE', 'RBRACE',
+    'PLUS', 'MINUS', 'TIMES', 'DIVIDE',
+    'IF', 'ELSE', 'FOR', 'NEW', 'BREAK', 'ASSIGN',
+    'INT_LITERAL', 'DECIMAL_LITERAL',
     # Andres Saltos - Fin
 ]
 
@@ -60,10 +65,106 @@ def t_OR(t):
 
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
-    t.type = reserved_victor.get(t.value, 'ID')
+    t.type = reserved_victor.get(t.value) or reserved_andres.get(t.value, 'ID')
     return t
 
 # Victor Morales - Fin del Aporte
+
+# Andres Saltos - Inicio de Aporte
+
+reserved_andres = {
+    'int'     : 'INT',
+    'decimal' : 'DECIMAL',
+    'string'  : 'STRING',
+    'var'     : 'VAR',
+    'if'      : 'IF',
+    'else'    : 'ELSE',
+    'for'     : 'FOR',
+    'new'     : 'NEW',
+    'break'   : 'BREAK',
+}
+
+# Literales numéricos: el decimal debe ir antes que el entero para que PLY lo priorice
+def t_DECIMAL_LITERAL(t):
+    r'\d+\.\d+'
+    return t
+
+def t_INT_LITERAL(t):
+    r'\d+'
+    return t
+
+# Asignación compuesta (multi-carácter) antes que los operadores simples
+def t_PLUS_ASSIGN(t):
+    r'\+='
+    return t
+
+def t_MINUS_ASSIGN(t):
+    r'-='
+    return t
+
+def t_TIMES_ASSIGN(t):
+    r'\*='
+    return t
+
+def t_DIV_ASSIGN(t):
+    r'/='
+    return t
+
+# Operadores aritméticos simples
+def t_PLUS(t):
+    r'\+'
+    return t
+
+def t_MINUS(t):
+    r'-'
+    return t
+
+def t_TIMES(t):
+    r'\*'
+    return t
+
+def t_DIVIDE(t):
+    r'/'
+    return t
+
+# Asignación simple (después de '==' de Victor y de los compuestos)
+def t_ASSIGN(t):
+    r'='
+    return t
+
+# Puntuación
+def t_SEMICOLON(t):
+    r';'
+    return t
+
+def t_COMMA(t):
+    r','
+    return t
+
+def t_LPAREN(t):
+    r'\('
+    return t
+
+def t_RPAREN(t):
+    r'\)'
+    return t
+
+def t_LBRACE(t):
+    r'\{'
+    return t
+
+def t_RBRACE(t):
+    r'\}'
+    return t
+
+# Conteo de líneas y caracteres ignorados
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += len(t.value)
+
+t_ignore = ' \t'
+
+# Andres Saltos - Fin del Aporte
 
 # Manejos de errores
 def t_error(t):
@@ -98,7 +199,7 @@ if __name__ == "__main__":
  
     generar_log(
         tipo_analisis="lexico",
-        nombre="VictorMorales", #Cambiar el nombre 
+        nombre="AndresSaltos", #Cambiar el nombre
         tokens_encontrados=tokens_encontrados,
         errores=[]
     )
