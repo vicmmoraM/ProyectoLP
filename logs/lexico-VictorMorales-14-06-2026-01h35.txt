@@ -1,0 +1,79 @@
+Análisis Lexico — VictorMorales ===
+Fecha: 14-06-2026  Hora: 01h35
+========================================
+
+TOKENS RECONOCIDOS:
+  [ID]  'int'  —  línea 1
+  [LBRACKET]  '['  —  línea 1
+  [RBRACKET]  ']'  —  línea 1
+  [ID]  'cuotas'  —  línea 1
+  [ID]  'new'  —  línea 1
+  [ID]  'int'  —  línea 1
+  [LBRACKET]  '['  —  línea 1
+  [RBRACKET]  ']'  —  línea 1
+  [BOOL]  'bool'  —  línea 1
+  [ID]  'aprobado'  —  línea 1
+  [FALSE]  'false'  —  línea 1
+  [BOOL]  'bool'  —  línea 1
+  [ID]  'pagado'  —  línea 1
+  [TRUE]  'true'  —  línea 1
+  [VOID]  'void'  —  línea 1
+  [ID]  'VerificarPrestamo'  —  línea 1
+  [ID]  'int'  —  línea 1
+  [ID]  'intentos'  —  línea 1
+  [WHILE]  'while'  —  línea 1
+  [ID]  'intentos'  —  línea 1
+  [LT]  '<'  —  línea 1
+  [ID]  'intentos'  —  línea 1
+  [BOOL]  'bool'  —  línea 1
+  [ID]  'AprobarPrestamos'  —  línea 1
+  [ID]  'int'  —  línea 1
+  [ID]  'monto'  —  línea 1
+  [ID]  'int'  —  línea 1
+  [ID]  'plazo'  —  línea 1
+  [ID]  'if'  —  línea 1
+  [ID]  'monto'  —  línea 1
+  [GT]  '>'  —  línea 1
+  [AND]  '&&'  —  línea 1
+  [ID]  'plazo'  —  línea 1
+  [GT]  '>'  —  línea 1
+  [ID]  'aprobado'  —  línea 1
+  [TRUE]  'true'  —  línea 1
+  [RETURN]  'return'  —  línea 1
+  [TRUE]  'true'  —  línea 1
+  [ID]  'else'  —  línea 1
+  [ID]  'aprobado'  —  línea 1
+  [FALSE]  'false'  —  línea 1
+  [RETURN]  'return'  —  línea 1
+  [FALSE]  'false'  —  línea 1
+  [BOOL]  'bool'  —  línea 1
+  [ID]  'ValidarCuotas'  —  línea 1
+  [ID]  'int'  —  línea 1
+  [ID]  'totalCuotas'  —  línea 1
+  [ID]  'int'  —  línea 1
+  [ID]  'cuotasPagadas'  —  línea 1
+  [ID]  'if'  —  línea 1
+  [ID]  'cuotasPagadas'  —  línea 1
+  [EQ]  '=='  —  línea 1
+  [ID]  'totalCuotas'  —  línea 1
+  [ID]  'pagado'  —  línea 1
+  [TRUE]  'true'  —  línea 1
+  [RETURN]  'return'  —  línea 1
+  [TRUE]  'true'  —  línea 1
+  [ID]  'if'  —  línea 1
+  [ID]  'cuotasPagadas'  —  línea 1
+  [NEQ]  '!='  —  línea 1
+  [ID]  'totalCuotas'  —  línea 1
+  [AND]  '&&'  —  línea 1
+  [ID]  'cuotasPagadas'  —  línea 1
+  [GT]  '>'  —  línea 1
+  [ID]  'pagado'  —  línea 1
+  [FALSE]  'false'  —  línea 1
+  [RETURN]  'return'  —  línea 1
+  [FALSE]  'false'  —  línea 1
+  [RETURN]  'return'  —  línea 1
+  [FALSE]  'false'  —  línea 1
+
+Total tokens: 70
+
+Sin errores léxicos.

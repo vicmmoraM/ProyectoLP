@@ -24,3 +24,6 @@ Para que tengamos un orden usaremos tipos:
 | `docs` | Cambios en documentación |
 | `refactor` | Mejora de código sin cambiar funcionalidad |
 | `test` | Agregar o modificar pruebas |
+
+#Ejecución de su algoritmo.cs
+`python src/lexer.py algoritmos/algoritmo[Número correspondiente].cs`
