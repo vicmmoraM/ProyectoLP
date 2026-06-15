@@ -1,14 +1,20 @@
 import datetime
 import os
 
-def generar_log(tipo_analisis, nombre, tokens_encontrados, errores):
+def _find_column(source, token):
+    line_start = source.rfind('\n', 0, token.lexpos) + 1
+    return (token.lexpos - line_start) + 1
+
+def generar_log(tipo_analisis, nombre, tokens_encontrados, errores, source=""):
     ahora = datetime.datetime.now()
     fecha = ahora.strftime("%d-%m-%Y")
     hora  = ahora.strftime("%Hh%M")
     nombre_archivo = f"{tipo_analisis}-{nombre}-{fecha}-{hora}.txt"
 
-    os.makedirs("logs", exist_ok=True)
-    ruta = os.path.join("logs", nombre_archivo)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    logs_dir = os.path.normpath(os.path.join(base_dir, "..", "logs"))
+    os.makedirs(logs_dir, exist_ok=True)
+    ruta = os.path.join(logs_dir, nombre_archivo)
 
     with open(ruta, "w", encoding="utf-8") as f:
         f.write(f"Análisis {tipo_analisis.capitalize()} — {nombre} ===\n")
@@ -17,7 +23,8 @@ def generar_log(tipo_analisis, nombre, tokens_encontrados, errores):
 
         f.write("TOKENS RECONOCIDOS:\n")
         for tok in tokens_encontrados:
-            f.write(f"  [{tok.type}]  {repr(tok.value)}  —  línea {tok.lineno}\n")
+            col = _find_column(source, tok) if source else "?"
+            f.write(f"  [{tok.type}]  {repr(tok.value)}  —  línea {tok.lineno}, columna {col}\n")
 
         f.write(f"\nTotal tokens: {len(tokens_encontrados)}\n")
 

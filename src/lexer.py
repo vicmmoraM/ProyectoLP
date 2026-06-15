@@ -1,6 +1,9 @@
+import sys
 import ply.lex as lex
 from logger import generar_log
 #no se olviden de instalar ply -> comando par instalar: pip install ply
+
+sys.stdout.reconfigure(encoding='utf-8')
 
 errores_lexicos = []
 #Listado con tokens
@@ -77,6 +80,19 @@ reserved_adrian = {
     'case'   : 'CASE',
 }
 
+# Andres Saltos - palabras reservadas
+reserved_andres = {
+    'int'     : 'INT',
+    'decimal' : 'DECIMAL',
+    'string'  : 'STRING',
+    'var'     : 'VAR',
+    'if'      : 'IF',
+    'else'    : 'ELSE',
+    'for'     : 'FOR',
+    'new'     : 'NEW',
+    'break'   : 'BREAK',
+}
+
 # t_ID unificado: cubre los diccionarios de todos los integrantes del equipo
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
@@ -115,18 +131,6 @@ def t_error(t):
 # Jose Adrian - Fin del Aporte
 
 # Andres Saltos - Inicio de Aporte
-
-reserved_andres = {
-    'int'     : 'INT',
-    'decimal' : 'DECIMAL',
-    'string'  : 'STRING',
-    'var'     : 'VAR',
-    'if'      : 'IF',
-    'else'    : 'ELSE',
-    'for'     : 'FOR',
-    'new'     : 'NEW',
-    'break'   : 'BREAK',
-}
 
 # Literales numéricos: el decimal debe ir antes que el entero para que PLY lo priorice
 def t_DECIMAL_LITERAL(t):
@@ -236,6 +240,7 @@ if __name__ == "__main__":
         tipo_analisis="lexico",
         nombre="JoseAdrian",
         tokens_encontrados=tokens_encontrados,
-        errores=errores_lexicos
+        errores=errores_lexicos,
+        source=codigo,
     )
 
