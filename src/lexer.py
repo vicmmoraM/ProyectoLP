@@ -1,6 +1,8 @@
 import ply.lex as lex
 from logger import generar_log
 #no se olviden de instalar ply -> comando par instalar: pip install ply
+
+errores_lexicos = []
 #Listado con tokens
 
 tokens = [
@@ -8,7 +10,7 @@ tokens = [
     'ID','LBRACKET', 'RBRACKET', 'WHILE', 'RETURN', 'VOID', 'BOOL', 'TRUE', 'FALSE', 'GT', 'LT', 'EQ', 'NEQ', 'AND', 'OR',
     # Victor Morales - Fin
     # Jose Adrian - Inicio
-
+    'LIST', 'PUBLIC', 'CLASS', 'SWITCH', 'CASE', 'STRING_LITERAL',
     # Jose Adrian - Fin
     # Andres Saltos - Inicio
     'INT', 'DECIMAL', 'STRING', 'VAR',
@@ -63,12 +65,54 @@ def t_OR(t):
     r'\|\|'
     return t
 
+# Victor Morales - Fin del Aporte
+
+# José Adrián - Inicio de Aporte
+
+reserved_adrian = {
+    'List'   : 'LIST',
+    'public' : 'PUBLIC',
+    'class'  : 'CLASS',
+    'switch' : 'SWITCH',
+    'case'   : 'CASE',
+}
+
+# t_ID unificado: cubre los diccionarios de todos los integrantes del equipo
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
-    t.type = reserved_victor.get(t.value) or reserved_andres.get(t.value, 'ID')
+    reservadas = {**reserved_victor, **reserved_andres, **reserved_adrian}
+    t.type = reservadas.get(t.value, 'ID')
     return t
 
-# Victor Morales - Fin del Aporte
+# Comentarios multilínea — definidos como función para tener prioridad sobre t_DIVIDE
+def t_COMMENT_MULTI(t):
+    r'/\*(.|\n)*?\*/'
+    t.lexer.lineno += t.value.count('\n')
+
+# Comentarios de una sola línea
+def t_COMMENT_SINGLE(t):
+    r'//.*'
+    pass
+
+# Literales de cadena de texto  (ej. "Saldo insuficiente")
+def t_STRING_LITERAL(t):
+    r'\"([^\\\n]|(\\.))*?\"'
+    return t
+
+# Calcula la columna exacta de un token a partir de su posición absoluta en el fuente
+def find_column(input_data, token):
+    line_start = input_data.rfind('\n', 0, token.lexpos) + 1
+    return (token.lexpos - line_start) + 1
+
+# Captura caracteres inválidos y registra el error con línea y columna exactas
+def t_error(t):
+    col = find_column(t.lexer.lexdata, t)
+    msg = f"Error Léxico: Carácter no reconocido '{t.value[0]}' en la línea {t.lexer.lineno}, columna {col}"
+    print(msg)
+    errores_lexicos.append(msg)
+    t.lexer.skip(1)
+
+# Jose Adrian - Fin del Aporte
 
 # Andres Saltos - Inicio de Aporte
 
@@ -166,16 +210,6 @@ t_ignore = ' \t'
 
 # Andres Saltos - Fin del Aporte
 
-# Manejos de errores
-def t_error(t):
-    col = find_column(t.lexer.lexdata, t)
-    print(f"Error léxico: carácter no reconocido '{t.value[0]}' en línea {t.lexer.lineno}, columna {col}")
-    t.lexer.skip(1)
- 
-def find_column(input_text, token):
-    line_start = input_text.rfind('\n', 0, token.lexpos) + 1
-    return (token.lexpos - line_start) + 1
-
 if __name__ == "__main__":
     import sys
  
@@ -188,6 +222,7 @@ if __name__ == "__main__":
     with open(archivo, "r", encoding="utf-8") as f:
         codigo = f.read()
  
+    errores_lexicos.clear()
     lexer = lex.lex()
     lexer.input(codigo)
  
@@ -199,8 +234,8 @@ if __name__ == "__main__":
  
     generar_log(
         tipo_analisis="lexico",
-        nombre="AndresSaltos", #Cambiar el nombre
+        nombre="JoseAdrian",
         tokens_encontrados=tokens_encontrados,
-        errores=[]
+        errores=errores_lexicos
     )
 
