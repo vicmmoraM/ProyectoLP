@@ -17,14 +17,14 @@ def generar_log(tipo_analisis, nombre, tokens_encontrados, errores, source=""):
     ruta = os.path.join(logs_dir, nombre_archivo)
 
     with open(ruta, "w", encoding="utf-8") as f:
-        f.write(f"Análisis {tipo_analisis.capitalize()} — {nombre} ===\n")
+        f.write(f"Análisis {tipo_analisis.capitalize()} - {nombre} ===\n")
         f.write(f"Fecha: {fecha}  Hora: {hora}\n")
         f.write("=" * 40 + "\n\n")
 
         f.write("TOKENS RECONOCIDOS:\n")
         for tok in tokens_encontrados:
             col = _find_column(source, tok) if source else "?"
-            f.write(f"  [{tok.type}]  {repr(tok.value)}  —  línea {tok.lineno}, columna {col}\n")
+            f.write(f"  [{tok.type}]  {repr(tok.value)}  -  línea {tok.lineno}, columna {col}\n")
 
         f.write(f"\nTotal tokens: {len(tokens_encontrados)}\n")
 

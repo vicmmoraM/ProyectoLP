@@ -100,7 +100,7 @@ def t_ID(t):
     t.type = reservadas.get(t.value, 'ID')
     return t
 
-# Comentarios multilínea — definidos como función para tener prioridad sobre t_DIVIDE
+# Comentarios multilínea - definidos como función para tener prioridad sobre t_DIVIDE
 def t_COMMENT_MULTI(t):
     r'/\*(.|\n)*?\*/'
     t.lexer.lineno += t.value.count('\n')
@@ -110,7 +110,7 @@ def t_COMMENT_SINGLE(t):
     r'//.*'
     pass
 
-# Literales de cadena de texto  (ej. "Saldo insuficiente")
+# Literales de cadena de texto
 def t_STRING_LITERAL(t):
     r'\"([^\\\n]|(\\.))*?\"'
     return t
@@ -234,7 +234,7 @@ if __name__ == "__main__":
  
     for tok in lexer:
         tokens_encontrados.append(tok)
-        print(f"[{tok.type}]  {repr(tok.value)}  —  línea {tok.lineno}")
+        print(f"[{tok.type}]  {repr(tok.value)}  -  línea {tok.lineno}")
  
     generar_log(
         tipo_analisis="lexico",
