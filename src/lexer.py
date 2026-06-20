@@ -13,7 +13,7 @@ tokens = [
     'ID','LBRACKET', 'RBRACKET', 'WHILE', 'RETURN', 'VOID', 'BOOL', 'TRUE', 'FALSE', 'GT', 'LT', 'EQ', 'NEQ', 'AND', 'OR',
     # Victor Morales - Fin
     # Jose Adrian - Inicio
-    'LIST', 'PUBLIC', 'CLASS', 'SWITCH', 'CASE', 'STRING_LITERAL',
+    'LIST', 'PUBLIC', 'CLASS', 'SWITCH', 'CASE', 'STRING_LITERAL', 'COLON',
     # Jose Adrian - Fin
     # Andres Saltos - Inicio
     'INT', 'DECIMAL', 'STRING', 'VAR',
@@ -127,6 +127,10 @@ def t_error(t):
     print(msg)
     errores_lexicos.append(msg)
     t.lexer.skip(1)
+
+def t_COLON(t):
+    r':'
+    return t
 
 # Jose Adrian - Fin del Aporte
 

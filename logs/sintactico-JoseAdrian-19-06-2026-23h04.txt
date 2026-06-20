@@ -1,0 +1,10 @@
+Análisis Sintactico - JoseAdrian ===
+Fecha: 19-06-2026  Hora: 23h04
+========================================
+
+TOKENS RECONOCIDOS:
+
+Total tokens: 0
+
+Errores:
+  Error Sintáctico: 'decimal' en línea 12
