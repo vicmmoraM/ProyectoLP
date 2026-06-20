@@ -1,5 +1,5 @@
-Análisis Sintactico - JoseAdrian ===
-Fecha: 19-06-2026  Hora: 23h04
+Análisis Sintactico - arzel01 ===
+Fecha: 19-06-2026  Hora: 23h18
 ========================================
 
 TOKENS RECONOCIDOS:

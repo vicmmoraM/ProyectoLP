@@ -147,5 +147,5 @@ if __name__ == "__main__":
     parser.parse(codigo, lexer=lexer_instance)
     estado = "exitoso" if not errores_sintacticos else f"con {len(errores_sintacticos)} error(es)"
     print(f"Parsing {estado}: {archivo}")
-    generar_log(tipo_analisis="sintactico", nombre="JoseAdrian",
+    generar_log(tipo_analisis="sintactico", nombre="arzel01",
                 tokens_encontrados=[], errores=errores_sintacticos, source=codigo)
