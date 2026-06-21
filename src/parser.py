@@ -87,7 +87,8 @@ def p_stmt_list(p):
 def p_stmt(p):
     '''stmt : ID ASSIGN expr SEMICOLON
             | expr SEMICOLON
-            | switch_stmt'''
+            | switch_stmt
+            | list_decl'''  # fix issue #4: list_decl accesible desde stmt_list
 
 # ── Expresiones aritméticas y condicionales ───────────────────
 
