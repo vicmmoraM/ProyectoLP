@@ -10,7 +10,7 @@ errores_lexicos = []
 
 tokens = [
     # Victor Morales - Inicio
-    'ID','LBRACKET', 'RBRACKET', 'WHILE', 'RETURN', 'VOID', 'BOOL', 'TRUE', 'FALSE', 'GT', 'LT', 'EQ', 'NEQ', 'AND', 'OR',
+    'ID','LBRACKET', 'RBRACKET', 'WHILE', 'RETURN', 'VOID', 'BOOL', 'TRUE', 'FALSE', 'GT', 'LT', 'EQ', 'NEQ', 'AND', 'OR', 'DOT',
     # Victor Morales - Fin
     # Jose Adrian - Inicio
     'LIST', 'PUBLIC', 'CLASS', 'SWITCH', 'CASE', 'STRING_LITERAL', 'COLON',
@@ -66,6 +66,10 @@ def t_AND(t):
  
 def t_OR(t):
     r'\|\|'
+    return t
+
+def t_DOT(t):
+    r'\.'
     return t
 
 # Victor Morales - Fin del Aporte
