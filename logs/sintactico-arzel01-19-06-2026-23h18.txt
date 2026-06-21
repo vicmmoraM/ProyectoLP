@@ -1,0 +1,10 @@
+Análisis Sintactico - arzel01 ===
+Fecha: 19-06-2026  Hora: 23h18
+========================================
+
+TOKENS RECONOCIDOS:
+
+Total tokens: 0
+
+Errores:
+  Error Sintáctico: 'decimal' en línea 12
