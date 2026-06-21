@@ -33,6 +33,8 @@ Ejemplos:
 
 Las ramas deben seguir el formato: `tipo/descripcion-corta`
 
+Si la rama está asociada a un issue, usar: `issue#[numero]/[tipo]-descripcion-corta`
+
 | Tipo | Uso |
 |------|-----|
 | `feature` | Nueva funcionalidad o aporte |
@@ -43,7 +45,8 @@ Las ramas deben seguir el formato: `tipo/descripcion-corta`
 Ejemplos:
 - `feature/lexer-victor`
 - `fix/parser-list-decl`
-- `docs/readme-convenciones`
+- `issue#3/enhancement-list-decl-stmt`
+- `issue#5/bug-lexer-operador`
 
 ### Convención de commits
 
