@@ -1,0 +1,9 @@
+Análisis Sintactico - arzel01 ===
+Fecha: 21-06-2026  Hora: 14h12
+========================================
+
+TOKENS RECONOCIDOS:
+
+Total tokens: 0
+
+Sin errores léxicos.
