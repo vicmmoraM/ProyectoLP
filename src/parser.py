@@ -30,7 +30,9 @@ def p_class_body(p):
                   | class_body list_decl
                   | class_body dict_decl
                   | class_body func_decl
-                  | empty'''  # Andrés Saltos: dict_decl y func_decl como miembros de clase
+                  | class_body array_decl
+                  | class_body var_decl
+                  | empty'''  # Andrés Saltos: dict_decl y func_decl; Victor Morales: array_decl, var_decl
 
 def p_method_decl(p):
     '''method_decl : PUBLIC return_type ID LPAREN param_list RPAREN LBRACE stmt_list RBRACE'''
@@ -93,7 +95,10 @@ def p_stmt(p):
             | list_decl
             | dict_decl
             | if_stmt
-            | RETURN expr SEMICOLON'''  # fix issue #4: list_decl; Andrés Saltos: dict_decl, if_stmt y return como sentencias
+            | while_stmt
+            | array_decl
+            | var_decl
+            | RETURN expr SEMICOLON'''  # fix issue #4: list_decl; Andrés Saltos: dict_decl, if_stmt, return; Victor Morales: while_stmt, array_decl, var_decl
 
 # ── Expresiones aritméticas y condicionales ───────────────────
 
@@ -147,6 +152,27 @@ def p_if_stmt(p):
 def p_func_decl(p):
     '''func_decl : type ID LPAREN param_list RPAREN LBRACE stmt_list RBRACE'''
 
+# ── Victor Morales – Inicio ───────────────────────────────────
+
+def p_while_stmt(p):
+    '''while_stmt : WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE'''
+
+def p_array_decl(p):
+    '''array_decl : type LBRACKET RBRACKET ID ASSIGN NEW type LBRACKET expr RBRACKET SEMICOLON
+                  | type LBRACKET RBRACKET ID SEMICOLON'''
+
+def p_var_decl(p):
+    '''var_decl : type ID ASSIGN expr SEMICOLON
+                | type ID SEMICOLON'''
+
+def p_expr_index(p):
+    '''expr : ID LBRACKET expr RBRACKET'''
+
+def p_expr_method_call(p):
+    '''expr : ID DOT ID LPAREN arg_list RPAREN'''
+
+# ── Victor Morales – Fin ──────────────────────────────────────
+
 # ── Producción vacía y manejo de errores ──────────────────────
 
 def p_empty(p):
@@ -172,5 +198,5 @@ if __name__ == "__main__":
     parser.parse(codigo, lexer=lexer_instance)
     estado = "exitoso" if not errores_sintacticos else f"con {len(errores_sintacticos)} error(es)"
     print(f"Parsing {estado}: {archivo}")
-    generar_log(tipo_analisis="sintactico", nombre="arzel01",
+    generar_log(tipo_analisis="sintactico", nombre="vicmmoraM",
                 tokens_encontrados=[], errores=errores_sintacticos, source=codigo)
