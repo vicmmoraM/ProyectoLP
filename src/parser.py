@@ -28,7 +28,9 @@ def p_program(p):
 def p_class_body(p):
     '''class_body : class_body method_decl
                   | class_body list_decl
-                  | empty'''
+                  | class_body dict_decl
+                  | class_body func_decl
+                  | empty'''  # Andrés Saltos: dict_decl y func_decl como miembros de clase
 
 def p_method_decl(p):
     '''method_decl : PUBLIC return_type ID LPAREN param_list RPAREN LBRACE stmt_list RBRACE'''
@@ -88,7 +90,10 @@ def p_stmt(p):
     '''stmt : ID ASSIGN expr SEMICOLON
             | expr SEMICOLON
             | switch_stmt
-            | list_decl'''  # fix issue #4: list_decl accesible desde stmt_list
+            | list_decl
+            | dict_decl
+            | if_stmt
+            | RETURN expr SEMICOLON'''  # fix issue #4: list_decl; Andrés Saltos: dict_decl, if_stmt y return como sentencias
 
 # ── Expresiones aritméticas y condicionales ───────────────────
 
@@ -122,6 +127,25 @@ def p_expr_atom(p):
             | STRING_LITERAL
             | TRUE
             | FALSE'''
+
+# ── Andrés Saltos: Estructura de datos Diccionario ────────────
+# Reconoce 'Dictionary<K,V> nombre = new Dictionary<K,V>();' y la declaración simple.
+# 'Dictionary' llega como ID (no es reservada); reutiliza el no-terminal 'type' para K y V.
+def p_dict_decl(p):
+    '''dict_decl : ID LT type COMMA type GT ID ASSIGN NEW ID LT type COMMA type GT LPAREN RPAREN SEMICOLON
+                 | ID LT type COMMA type GT ID SEMICOLON'''
+
+# ── Andrés Saltos: Estructura de control if / else ────────────
+# Reconoce 'if (expr) { stmt_list } else { stmt_list }' y la variante sin else.
+def p_if_stmt(p):
+    '''if_stmt : IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE
+               | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE'''
+
+# ── Andrés Saltos: Función con retorno (sin 'public') ─────────
+# Reconoce 'tipo Nombre(params) { ... }', distinta de method_decl (que lleva 'public').
+# Reutiliza 'type' (retorno) y 'param_list'. El cuerpo usa la sentencia 'return expr;'.
+def p_func_decl(p):
+    '''func_decl : type ID LPAREN param_list RPAREN LBRACE stmt_list RBRACE'''
 
 # ── Producción vacía y manejo de errores ──────────────────────
 
