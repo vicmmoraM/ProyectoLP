@@ -1,0 +1,10 @@
+Análisis Sintactico - vicmmoraM ===
+Fecha: 21-06-2026  Hora: 16h13
+========================================
+
+TOKENS RECONOCIDOS:
+
+Total tokens: 0
+
+Errores:
+  Error Sintáctico: 'int' en línea 1

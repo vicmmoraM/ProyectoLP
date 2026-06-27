@@ -1,0 +1,9 @@
+Análisis Sintactico - vicmmoraM ===
+Fecha: 21-06-2026  Hora: 16h16
+========================================
+
+TOKENS RECONOCIDOS:
+
+Total tokens: 0
+
+Sin errores léxicos.

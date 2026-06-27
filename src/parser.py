@@ -30,9 +30,10 @@ def p_class_body(p):
                   | class_body list_decl
                   | class_body dict_decl
                   | class_body func_decl
+                  | class_body void_func_decl
                   | class_body array_decl
                   | class_body var_decl
-                  | empty'''  # Andrés Saltos: dict_decl y func_decl; Victor Morales: array_decl, var_decl
+                  | empty'''  # Andrés Saltos: dict_decl y func_decl; Victor Morales: void_func_decl, array_decl, var_decl
 
 def p_method_decl(p):
     '''method_decl : PUBLIC return_type ID LPAREN param_list RPAREN LBRACE stmt_list RBRACE'''
@@ -96,9 +97,10 @@ def p_stmt(p):
             | dict_decl
             | if_stmt
             | while_stmt
+            | void_func_decl
             | array_decl
             | var_decl
-            | RETURN expr SEMICOLON'''  # fix issue #4: list_decl; Andrés Saltos: dict_decl, if_stmt, return; Victor Morales: while_stmt, array_decl, var_decl
+            | RETURN expr SEMICOLON'''  # fix issue #4: list_decl; Andrés Saltos: dict_decl, if_stmt, return; Victor Morales: void_func_decl, while_stmt, array_decl, var_decl
 
 # ── Expresiones aritméticas y condicionales ───────────────────
 
@@ -153,6 +155,9 @@ def p_func_decl(p):
     '''func_decl : type ID LPAREN param_list RPAREN LBRACE stmt_list RBRACE'''
 
 # ── Victor Morales – Inicio ───────────────────────────────────
+
+def p_void_func_decl(p):
+    '''void_func_decl : VOID ID LPAREN param_list RPAREN LBRACE stmt_list RBRACE'''
 
 def p_while_stmt(p):
     '''while_stmt : WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE'''
