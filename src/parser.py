@@ -9,6 +9,12 @@ from logger import generar_log
 
 sys.stdout.reconfigure(encoding='utf-8')
 errores_sintacticos = []
+errores_semanticos = []
+loop_depth = 0
+
+def sem_error(msg):
+    errores_semanticos.append(msg)
+    print(msg)
 
 # ── José Adrián – Precedencia de operadores ──────────────────
 precedence = (
@@ -68,15 +74,22 @@ def p_list_decl(p):
 
 # ── Estructura de control: Switch ─────────────────────────────
 
+def p_switch_header(p):
+    '''switch_header : SWITCH LPAREN ID RPAREN'''
+    global loop_depth
+    loop_depth += 1
+
 def p_switch_stmt(p):
-    '''switch_stmt : SWITCH LPAREN ID RPAREN LBRACE case_list RBRACE'''
+    '''switch_stmt : switch_header LBRACE case_list RBRACE'''
+    global loop_depth
+    loop_depth -= 1
 
 def p_case_list(p):
     '''case_list : case_list case_item
                  | case_item'''
 
 def p_case_item(p):
-    '''case_item : CASE case_value COLON stmt_list BREAK SEMICOLON'''
+    '''case_item : CASE case_value COLON stmt_list'''
 
 def p_case_value(p):
     '''case_value : INT_LITERAL
@@ -100,7 +113,13 @@ def p_stmt(p):
             | void_func_decl
             | array_decl
             | var_decl
-            | RETURN expr SEMICOLON'''  # fix issue #4: list_decl; Andrés Saltos: dict_decl, if_stmt, return; Victor Morales: void_func_decl, while_stmt, array_decl, var_decl
+            | RETURN expr SEMICOLON
+            | for_stmt
+            | compound_assign
+            | BREAK SEMICOLON'''  # fix issue #4: list_decl; Andrés Saltos: dict_decl, if_stmt, return; Victor Morales: void_func_decl, while_stmt, array_decl, var_decl, for_stmt, compound_assign, break
+    if p.slice[1].type == 'BREAK':
+        if loop_depth == 0:
+            sem_error("Error Semántico: Ningún bucle o instrucción switch envolvente para abandonar o continuar.")
 
 # ── Expresiones aritméticas y condicionales ───────────────────
 
@@ -159,8 +178,15 @@ def p_func_decl(p):
 def p_void_func_decl(p):
     '''void_func_decl : VOID ID LPAREN param_list RPAREN LBRACE stmt_list RBRACE'''
 
+def p_while_header(p):
+    '''while_header : WHILE LPAREN expr RPAREN'''
+    global loop_depth
+    loop_depth += 1
+
 def p_while_stmt(p):
-    '''while_stmt : WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE'''
+    '''while_stmt : while_header LBRACE stmt_list RBRACE'''
+    global loop_depth
+    loop_depth -= 1
 
 def p_array_decl(p):
     '''array_decl : type LBRACKET RBRACKET ID ASSIGN NEW type LBRACKET expr RBRACKET SEMICOLON
@@ -169,6 +195,47 @@ def p_array_decl(p):
 def p_var_decl(p):
     '''var_decl : type ID ASSIGN expr SEMICOLON
                 | type ID SEMICOLON'''
+    if len(p) == 6:
+        tipo_var = p[1]
+        tipo_expr = p[4] if isinstance(p[4], str) else None
+        if tipo_var == 'int' and tipo_expr == 'decimal':
+            sem_error("Error Semántico: Posible pérdida de precisión. Falta una conversión explícita.")
+
+def p_for_header(p):
+    '''for_header : FOR LPAREN for_init SEMICOLON expr SEMICOLON for_update RPAREN'''
+    global loop_depth
+    loop_depth += 1
+
+def p_for_stmt(p):
+    '''for_stmt : for_header LBRACE stmt_list RBRACE'''
+    global loop_depth
+    loop_depth -= 1
+
+def p_for_init(p):
+    '''for_init : type ID ASSIGN expr
+                | ID ASSIGN expr
+                | empty'''
+
+def p_for_update(p):
+    '''for_update : ID ASSIGN expr
+                  | compound_assign_expr
+                  | empty'''
+
+def p_compound_assign_expr(p):
+    '''compound_assign_expr : ID PLUS_ASSIGN expr
+                            | ID MINUS_ASSIGN expr
+                            | ID TIMES_ASSIGN expr
+                            | ID DIV_ASSIGN expr'''
+
+def p_compound_assign(p):
+    '''compound_assign : ID PLUS_ASSIGN expr SEMICOLON
+                       | ID MINUS_ASSIGN expr SEMICOLON
+                       | ID TIMES_ASSIGN expr SEMICOLON
+                       | ID DIV_ASSIGN expr SEMICOLON'''
+    tipo_var = globals().get('symbol_table', {}).get(p[1], 'unknown')
+    tipo_expr = p[3] if isinstance(p[3], str) else None
+    if tipo_var == 'int' and tipo_expr == 'decimal':
+        sem_error("Error Semántico: Posible pérdida de precisión. Falta una conversión explícita.")
 
 def p_expr_index(p):
     '''expr : ID LBRACKET expr RBRACKET'''
@@ -203,5 +270,5 @@ if __name__ == "__main__":
     parser.parse(codigo, lexer=lexer_instance)
     estado = "exitoso" if not errores_sintacticos else f"con {len(errores_sintacticos)} error(es)"
     print(f"Parsing {estado}: {archivo}")
-    generar_log(tipo_analisis="sintactico", nombre="vicmmoraM",
-                tokens_encontrados=[], errores=errores_sintacticos, source=codigo)
+    generar_log(tipo_analisis="semantico", nombre="vicmmoraM",
+                tokens_encontrados=[], errores=errores_semanticos, source=codigo)
