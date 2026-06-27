@@ -1,0 +1,10 @@
+Análisis Semantico - vicmmoraM ===
+Fecha: 27-06-2026  Hora: 15h06
+========================================
+
+TOKENS RECONOCIDOS:
+
+Total tokens: 0
+
+Errores:
+  Error Semántico: Ningún bucle o instrucción switch envolvente para abandonar o continuar.

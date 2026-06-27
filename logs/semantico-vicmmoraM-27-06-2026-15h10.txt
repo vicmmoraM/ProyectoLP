@@ -1,0 +1,9 @@
+Análisis Semantico - vicmmoraM ===
+Fecha: 27-06-2026  Hora: 15h10
+========================================
+
+TOKENS RECONOCIDOS:
+
+Total tokens: 0
+
+Sin errores semánticos.
