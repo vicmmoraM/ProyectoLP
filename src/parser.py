@@ -11,6 +11,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 errores_sintacticos = []
 errores_semanticos = []
 loop_depth = 0
+symbol_table = {}   # { nombre_variable: tipo_string }
 
 def sem_error(msg):
     errores_semanticos.append(msg)
@@ -50,6 +51,7 @@ def p_return_type(p):
                    | BOOL
                    | DECIMAL
                    | STRING'''
+    p[0] = p[1].lower()
 
 def p_param_list(p):
     '''param_list : param_list COMMA param
@@ -58,12 +60,14 @@ def p_param_list(p):
 
 def p_param(p):
     '''param : type ID'''
+    symbol_table[p[2]] = p[1]
 
 def p_type(p):
     '''type : INT
             | DECIMAL
             | STRING
             | BOOL'''
+    p[0] = p[1].lower()   # 'int', 'decimal', 'string', 'bool'
 
 # ── Estructura de datos: List ─────────────────────────────────
 
@@ -71,6 +75,10 @@ def p_list_decl(p):
     '''list_decl : LIST LT type GT ID ASSIGN NEW LIST LT type GT LPAREN RPAREN SEMICOLON
                  | LIST LT type GT ID SEMICOLON
                  | LIST ID SEMICOLON'''
+    if len(p) == 15 or len(p) == 7:
+        symbol_table[p[5]] = f'List<{p[3]}>'
+    else:
+        symbol_table[p[2]] = 'List'
 
 # ── Estructura de control: Switch ─────────────────────────────
 
@@ -120,6 +128,13 @@ def p_stmt(p):
     if p.slice[1].type == 'BREAK':
         if loop_depth == 0:
             sem_error("Error Semántico: Ningún bucle o instrucción switch envolvente para abandonar o continuar.")
+    # Bloque de Andrés: reasignación ID = expr
+    if p.slice[1].type == 'ID' and len(p) == 5:
+        tipo_var = symbol_table.get(p[1], None)
+        tipo_expr = p[3] if isinstance(p[3], str) else None
+        if tipo_var and tipo_expr and tipo_expr not in (tipo_var, 'unknown'):
+            if not (tipo_var == 'int' and tipo_expr == 'decimal'):
+                sem_error(f"Error Semántico: No se puede convertir implícitamente el tipo '{tipo_expr}' en '{tipo_var}'.")
 
 # ── Expresiones aritméticas y condicionales ───────────────────
 
@@ -134,9 +149,15 @@ def p_expr_binop(p):
             | expr NEQ    expr
             | expr LT     expr
             | expr GT     expr'''
+    op = p.slice[2].type
+    if op in ('AND', 'OR', 'EQ', 'NEQ', 'LT', 'GT'):
+        p[0] = 'bool'
+    else:
+        p[0] = p[1] if isinstance(p[1], str) else 'unknown'
 
 def p_expr_group(p):
     '''expr : LPAREN expr RPAREN'''
+    p[0] = p[2]
 
 def p_expr_call(p):
     '''expr : ID LPAREN arg_list RPAREN'''
@@ -153,6 +174,19 @@ def p_expr_atom(p):
             | STRING_LITERAL
             | TRUE
             | FALSE'''
+    tok = p.slice[1].type
+    if tok == 'ID':
+        if p[1] not in symbol_table:
+            sem_error(f"Error Semántico: La variable '{p[1]}' no existe en el contexto actual.")
+        p[0] = symbol_table.get(p[1], 'unknown')
+    elif tok == 'INT_LITERAL':
+        p[0] = 'int'
+    elif tok == 'DECIMAL_LITERAL':
+        p[0] = 'decimal'
+    elif tok == 'STRING_LITERAL':
+        p[0] = 'string'
+    elif tok in ('TRUE', 'FALSE'):
+        p[0] = 'bool'
 
 # ── Andrés Saltos: Estructura de datos Diccionario ────────────
 # Reconoce 'Dictionary<K,V> nombre = new Dictionary<K,V>();' y la declaración simple.
@@ -160,6 +194,7 @@ def p_expr_atom(p):
 def p_dict_decl(p):
     '''dict_decl : ID LT type COMMA type GT ID ASSIGN NEW ID LT type COMMA type GT LPAREN RPAREN SEMICOLON
                  | ID LT type COMMA type GT ID SEMICOLON'''
+    symbol_table[p[7]] = f'Dictionary<{p[3]},{p[5]}>'
 
 # ── Andrés Saltos: Estructura de control if / else ────────────
 # Reconoce 'if (expr) { stmt_list } else { stmt_list }' y la variante sin else.
@@ -191,15 +226,21 @@ def p_while_stmt(p):
 def p_array_decl(p):
     '''array_decl : type LBRACKET RBRACKET ID ASSIGN NEW type LBRACKET expr RBRACKET SEMICOLON
                   | type LBRACKET RBRACKET ID SEMICOLON'''
+    symbol_table[p[4]] = p[1] + '[]'
 
 def p_var_decl(p):
     '''var_decl : type ID ASSIGN expr SEMICOLON
                 | type ID SEMICOLON'''
-    if len(p) == 6:
-        tipo_var = p[1]
+    tipo_declarado = p[1]
+    nombre_var = p[2]
+    symbol_table[nombre_var] = tipo_declarado
+    if len(p) == 6:  # tiene asignación
         tipo_expr = p[4] if isinstance(p[4], str) else None
-        if tipo_var == 'int' and tipo_expr == 'decimal':
+        if tipo_declarado == 'int' and tipo_expr == 'decimal':       # Victor (NO eliminar)
             sem_error("Error Semántico: Posible pérdida de precisión. Falta una conversión explícita.")
+        elif tipo_expr and tipo_expr not in (tipo_declarado, 'unknown'):   # Andrés
+            # 'unknown' = el tipo no se pudo determinar (p.ej. var no declarada que ya dio error). Se ignora para no encadenar un 2º error.
+            sem_error(f"Error Semántico: No se puede convertir implícitamente el tipo '{tipo_expr}' en '{tipo_declarado}'.")
 
 def p_for_header(p):
     '''for_header : FOR LPAREN for_init SEMICOLON expr SEMICOLON for_update RPAREN'''
@@ -270,5 +311,5 @@ if __name__ == "__main__":
     parser.parse(codigo, lexer=lexer_instance)
     estado = "exitoso" if not errores_sintacticos else f"con {len(errores_sintacticos)} error(es)"
     print(f"Parsing {estado}: {archivo}")
-    generar_log(tipo_analisis="semantico", nombre="vicmmoraM",
+    generar_log(tipo_analisis="semantico", nombre="isaltosf",
                 tokens_encontrados=[], errores=errores_semanticos, source=codigo)
