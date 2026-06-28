@@ -1,0 +1,14 @@
+Análisis Semantico - arzel01 ===
+Fecha: 28-06-2026  Hora: 11h32
+========================================
+
+TOKENS RECONOCIDOS:
+
+Total tokens: 0
+
+Errores:
+  Error Semántico: El tipo de valor devuelto por la función no coincide con el tipo 'bool'.
+  Error Semántico: El operador '*' no se puede aplicar a operandos del tipo 'string'.
+  Error Semántico: No se puede convertir implícitamente el tipo 'string' en 'int'.
+  Error Semántico: El operador '/' no se puede aplicar a operandos del tipo 'string'.
+  Error Semántico: No se puede convertir implícitamente el tipo 'string' en 'int'.
