@@ -1,0 +1,12 @@
+Análisis Semantico - isaltosf ===
+Fecha: 27-06-2026  Hora: 21h09
+========================================
+
+TOKENS RECONOCIDOS:
+
+Total tokens: 0
+
+Errores:
+  Error Semántico: No se puede convertir implícitamente el tipo 'string' en 'decimal'.
+  Error Semántico: No se puede convertir implícitamente el tipo 'int' en 'string'.
+  Error Semántico: La variable 'inexistente' no existe en el contexto actual.
