@@ -33,7 +33,8 @@ def generar_log(tipo_analisis, nombre, tokens_encontrados, errores, source=""):
             for e in errores:
                 f.write(f"  {e}\n")
         else:
-            f.write("\nSin errores léxicos.\n")
+            label = {"lexico": "léxicos", "sintactico": "sintácticos", "semantico": "semánticos"}.get(tipo_analisis, "")
+            f.write(f"\nSin errores {label}.\n")
 
     print(f"Log generado: {ruta}")
     return ruta
