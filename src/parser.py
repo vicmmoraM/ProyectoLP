@@ -11,7 +11,8 @@ sys.stdout.reconfigure(encoding='utf-8')
 errores_sintacticos = []
 errores_semanticos = []
 loop_depth = 0
-symbol_table = {} 
+symbol_table = {}   
+current_return_type = None   
 
 def sem_error(msg, lineno=None):
     if lineno:
@@ -44,8 +45,15 @@ def p_class_body(p):
                   | class_body var_decl
                   | empty'''  # Andrés Saltos: dict_decl y func_decl; Victor Morales: void_func_decl, array_decl, var_decl
 
+def p_method_header(p):
+    '''method_header : PUBLIC return_type ID LPAREN param_list RPAREN'''
+    global current_return_type
+    current_return_type = p[2]
+
 def p_method_decl(p):
-    '''method_decl : PUBLIC return_type ID LPAREN param_list RPAREN LBRACE stmt_list RBRACE'''
+    '''method_decl : method_header LBRACE stmt_list RBRACE'''
+    global current_return_type
+    current_return_type = None
 
 def p_return_type(p):
     '''return_type : VOID
@@ -127,6 +135,10 @@ def p_stmt(p):
             | for_stmt
             | compound_assign
             | BREAK SEMICOLON'''  # fix issue #4: list_decl; Andrés Saltos: dict_decl, if_stmt, return; Victor Morales: void_func_decl, while_stmt, array_decl, var_decl, for_stmt, compound_assign, break
+    if p.slice[1].type == 'RETURN':
+        tipo_retorno = p[2] if isinstance(p[2], str) else None
+        if current_return_type == 'bool' and tipo_retorno != 'bool':
+            sem_error("Error Semántico: El tipo de valor devuelto por la función no coincide con el tipo 'bool'.")
     if p.slice[1].type == 'BREAK':
         if loop_depth == 0:
             sem_error("Error Semántico: Ningún bucle o instrucción switch envolvente para abandonar o continuar.", p.lineno(1))
@@ -152,10 +164,16 @@ def p_expr_binop(p):
             | expr LT     expr
             | expr GT     expr'''
     op = p.slice[2].type
+    tipo_izq = p[1] if isinstance(p[1], str) else 'unknown'
+    tipo_der = p[3] if isinstance(p[3], str) else 'unknown'
+    if op in ('TIMES', 'DIVIDE'):
+        if tipo_izq == 'string' or tipo_der == 'string':
+            op_sym = '*' if op == 'TIMES' else '/'
+            sem_error(f"Error Semántico: El operador '{op_sym}' no se puede aplicar a operandos del tipo 'string'.")
     if op in ('AND', 'OR', 'EQ', 'NEQ', 'LT', 'GT'):
         p[0] = 'bool'
     else:
-        p[0] = p[1] if isinstance(p[1], str) else 'unknown'
+        p[0] = tipo_izq
 
 def p_expr_group(p):
     '''expr : LPAREN expr RPAREN'''
@@ -207,13 +225,27 @@ def p_if_stmt(p):
 # ── Andrés Saltos: Función con retorno (sin 'public') ─────────
 # Reconoce 'tipo Nombre(params) { ... }', distinta de method_decl (que lleva 'public').
 # Reutiliza 'type' (retorno) y 'param_list'. El cuerpo usa la sentencia 'return expr;'.
+def p_func_header(p):
+    '''func_header : type ID LPAREN param_list RPAREN'''
+    global current_return_type
+    current_return_type = p[1]
+
 def p_func_decl(p):
-    '''func_decl : type ID LPAREN param_list RPAREN LBRACE stmt_list RBRACE'''
+    '''func_decl : func_header LBRACE stmt_list RBRACE'''
+    global current_return_type
+    current_return_type = None
 
 # ── Victor Morales – Inicio ───────────────────────────────────
 
+def p_void_func_header(p):
+    '''void_func_header : VOID ID LPAREN param_list RPAREN'''
+    global current_return_type
+    current_return_type = 'void'
+
 def p_void_func_decl(p):
-    '''void_func_decl : VOID ID LPAREN param_list RPAREN LBRACE stmt_list RBRACE'''
+    '''void_func_decl : void_func_header LBRACE stmt_list RBRACE'''
+    global current_return_type
+    current_return_type = None
 
 def p_while_header(p):
     '''while_header : WHILE LPAREN expr RPAREN'''
@@ -358,5 +390,5 @@ if __name__ == "__main__":
     parser.parse(codigo, lexer=lexer_instance)
     estado = "exitoso" if not errores_sintacticos else f"con {len(errores_sintacticos)} error(es)"
     print(f"Parsing {estado}: {archivo}")
-    generar_log(tipo_analisis="semantico", nombre="isaltosf",
+    generar_log(tipo_analisis="semantico", nombre="arzel01",
                 tokens_encontrados=[], errores=errores_semanticos, source=codigo)
