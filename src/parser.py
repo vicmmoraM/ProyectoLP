@@ -4,16 +4,18 @@ import ply.lex as lex
 
 sys.path.insert(0, '.')
 import lexer as lexer_module
-from lexer import tokens  # noqa: F401 — PLY requiere 'tokens' en este namespace
+from lexer import tokens  
 from logger import generar_log
 
 sys.stdout.reconfigure(encoding='utf-8')
 errores_sintacticos = []
 errores_semanticos = []
 loop_depth = 0
-symbol_table = {}   # { nombre_variable: tipo_string }
+symbol_table = {} 
 
-def sem_error(msg):
+def sem_error(msg, lineno=None):
+    if lineno:
+        msg = f"{msg} (línea {lineno})"
     errores_semanticos.append(msg)
     print(msg)
 
@@ -67,7 +69,7 @@ def p_type(p):
             | DECIMAL
             | STRING
             | BOOL'''
-    p[0] = p[1].lower()   # 'int', 'decimal', 'string', 'bool'
+    p[0] = p[1].lower()  
 
 # ── Estructura de datos: List ─────────────────────────────────
 
@@ -127,14 +129,14 @@ def p_stmt(p):
             | BREAK SEMICOLON'''  # fix issue #4: list_decl; Andrés Saltos: dict_decl, if_stmt, return; Victor Morales: void_func_decl, while_stmt, array_decl, var_decl, for_stmt, compound_assign, break
     if p.slice[1].type == 'BREAK':
         if loop_depth == 0:
-            sem_error("Error Semántico: Ningún bucle o instrucción switch envolvente para abandonar o continuar.")
+            sem_error("Error Semántico: Ningún bucle o instrucción switch envolvente para abandonar o continuar.", p.lineno(1))
     # Bloque de Andrés: reasignación ID = expr
     if p.slice[1].type == 'ID' and len(p) == 5:
         tipo_var = symbol_table.get(p[1], None)
         tipo_expr = p[3] if isinstance(p[3], str) else None
         if tipo_var and tipo_expr and tipo_expr not in (tipo_var, 'unknown'):
             if not (tipo_var == 'int' and tipo_expr == 'decimal'):
-                sem_error(f"Error Semántico: No se puede convertir implícitamente el tipo '{tipo_expr}' en '{tipo_var}'.")
+                sem_error(f"Error Semántico: No se puede convertir implícitamente el tipo '{tipo_expr}' en '{tipo_var}'.", p.lineno(1))
 
 # ── Expresiones aritméticas y condicionales ───────────────────
 
@@ -177,7 +179,7 @@ def p_expr_atom(p):
     tok = p.slice[1].type
     if tok == 'ID':
         if p[1] not in symbol_table:
-            sem_error(f"Error Semántico: La variable '{p[1]}' no existe en el contexto actual.")
+            sem_error(f"Error Semántico: La variable '{p[1]}' no existe en el contexto actual.", p.lineno(1))
         p[0] = symbol_table.get(p[1], 'unknown')
     elif tok == 'INT_LITERAL':
         p[0] = 'int'
@@ -237,10 +239,10 @@ def p_var_decl(p):
     if len(p) == 6:  # tiene asignación
         tipo_expr = p[4] if isinstance(p[4], str) else None
         if tipo_declarado == 'int' and tipo_expr == 'decimal':       # Victor (NO eliminar)
-            sem_error("Error Semántico: Posible pérdida de precisión. Falta una conversión explícita.")
+            sem_error("Error Semántico: Posible pérdida de precisión. Falta una conversión explícita.", p.lineno(2))
         elif tipo_expr and tipo_expr not in (tipo_declarado, 'unknown'):   # Andrés
             # 'unknown' = el tipo no se pudo determinar (p.ej. var no declarada que ya dio error). Se ignora para no encadenar un 2º error.
-            sem_error(f"Error Semántico: No se puede convertir implícitamente el tipo '{tipo_expr}' en '{tipo_declarado}'.")
+            sem_error(f"Error Semántico: No se puede convertir implícitamente el tipo '{tipo_expr}' en '{tipo_declarado}'.", p.lineno(2))
 
 def p_for_header(p):
     '''for_header : FOR LPAREN for_init SEMICOLON expr SEMICOLON for_update RPAREN'''
@@ -256,6 +258,8 @@ def p_for_init(p):
     '''for_init : type ID ASSIGN expr
                 | ID ASSIGN expr
                 | empty'''
+    if len(p) == 5: 
+        symbol_table[p[2]] = p[1]
 
 def p_for_update(p):
     '''for_update : ID ASSIGN expr
@@ -276,7 +280,7 @@ def p_compound_assign(p):
     tipo_var = globals().get('symbol_table', {}).get(p[1], 'unknown')
     tipo_expr = p[3] if isinstance(p[3], str) else None
     if tipo_var == 'int' and tipo_expr == 'decimal':
-        sem_error("Error Semántico: Posible pérdida de precisión. Falta una conversión explícita.")
+        sem_error("Error Semántico: Posible pérdida de precisión. Falta una conversión explícita.", p.lineno(1))
 
 def p_expr_index(p):
     '''expr : ID LBRACKET expr RBRACKET'''
@@ -292,12 +296,55 @@ def p_empty(p):
     '''empty :'''
 
 def p_error(p):
-    msg = f"Error Sintáctico: '{p.value}' en línea {p.lineno}" if p else "Error Sintáctico: EOF inesperado"
+    if p is None:
+        msg = ("Error Sintáctico: el código terminó antes de lo esperado. "
+               "Probablemente falta una llave de cierre '}' o un ';' al final.")
+    else:
+        msg = f"Error Sintáctico: token inesperado '{p.value}' en línea {p.lineno}"
+        if p.lexpos == 0:
+            msg += (". Todo programa debe comenzar con 'public class Nombre { ... }'; "
+                    "no se permiten declaraciones sueltas a nivel superior.")
+        elif p.type == 'RBRACE':
+            msg += ". Llave de cierre inesperada: revise que las llaves estén balanceadas o que la sentencia anterior esté completa."
+        elif p.type == 'SEMICOLON':
+            msg += ". Hay un ';' donde no corresponde o la expresión anterior está incompleta."
+        elif p.type in ('FOR', 'WHILE', 'IF', 'SWITCH'):
+            msg += f". La estructura '{p.value}' no es válida en esta posición; solo puede aparecer dentro del cuerpo de una función."
+        else:
+            msg += ". El token no encaja en la gramática en esta posición; revise la sentencia anterior (¿falta ';', '{' o un operador?)."
     print(msg)
     errores_sintacticos.append(msg)
 
-# debug=False suprime la generación del archivo parser.out
 parser = yacc.yacc(debug=False)
+
+def analizar(codigo):
+    """Ejecuta el análisis completo (léxico + sintáctico + semántico) sobre un
+    string de código y retorna los resultados como estructuras de datos.
+    Resetea el estado global entre llamadas para que la GUI pueda reanalizarse
+    sin reiniciar el proceso. No escribe logs (eso queda a cargo del llamador)."""
+    global loop_depth
+    errores_sintacticos.clear()
+    errores_semanticos.clear()
+    symbol_table.clear()
+    loop_depth = 0
+    lexer_module.errores_lexicos.clear()
+
+    # Pasada léxica: recolecta tokens y errores léxicos (con línea/columna)
+    lx = lex.lex(module=lexer_module)
+    lx.input(codigo)
+    tokens_encontrados = list(lx)
+    errores_lexicos = list(lexer_module.errores_lexicos)
+
+    # Pasada sintáctica + semántica (lexer fresco para reiniciar lineno)
+    lexer_module.errores_lexicos.clear()
+    parser.parse(codigo, lexer=lex.lex(module=lexer_module))
+
+    return {
+        "tokens": tokens_encontrados,
+        "errores_lexicos": errores_lexicos,
+        "errores_sintacticos": list(errores_sintacticos),
+        "errores_semanticos": list(errores_semanticos),
+    }
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

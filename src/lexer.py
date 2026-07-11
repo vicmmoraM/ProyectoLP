@@ -97,37 +97,30 @@ reserved_andres = {
     'break'   : 'BREAK',
 }
 
-# t_ID unificado: cubre los diccionarios de todos los integrantes del equipo
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
     reservadas = {**reserved_victor, **reserved_andres, **reserved_adrian}
     t.type = reservadas.get(t.value, 'ID')
     return t
 
-# Comentarios multilínea - definidos como función para tener prioridad sobre t_DIVIDE
 def t_COMMENT_MULTI(t):
     r'/\*(.|\n)*?\*/'
     t.lexer.lineno += t.value.count('\n')
 
-# Comentarios de una sola línea
 def t_COMMENT_SINGLE(t):
     r'//.*'
     pass
 
-# Literales de cadena de texto
 def t_STRING_LITERAL(t):
     r'\"([^\\\n]|(\\.))*?\"'
     return t
 
-# Calcula la columna exacta de un token a partir de su posición absoluta en el fuente
 def find_column(input_data, token):
     line_start = input_data.rfind('\n', 0, token.lexpos) + 1
     return (token.lexpos - line_start) + 1
 
-# Captura caracteres inválidos y registra el error con línea y columna exactas
 def t_error(t):
-    col = find_column(t.lexer.lexdata, t)
-    msg = f"Error Léxico: Carácter no reconocido '{t.value[0]}' en la línea {t.lexer.lineno}, columna {col}"
+    msg = f"Error Léxico: Carácter no reconocido '{t.value[0]}' en la línea {t.lexer.lineno}"
     print(msg)
     errores_lexicos.append(msg)
     t.lexer.skip(1)
@@ -140,7 +133,6 @@ def t_COLON(t):
 
 # Andres Saltos - Inicio de Aporte
 
-# Literales numéricos: el decimal debe ir antes que el entero para que PLY lo priorice
 def t_DECIMAL_LITERAL(t):
     r'\d+\.\d+'
     return t
@@ -149,7 +141,6 @@ def t_INT_LITERAL(t):
     r'\d+'
     return t
 
-# Asignación compuesta (multi-carácter) antes que los operadores simples
 def t_PLUS_ASSIGN(t):
     r'\+='
     return t
@@ -166,7 +157,6 @@ def t_DIV_ASSIGN(t):
     r'/='
     return t
 
-# Operadores aritméticos simples
 def t_PLUS(t):
     r'\+'
     return t
@@ -183,12 +173,10 @@ def t_DIVIDE(t):
     r'/'
     return t
 
-# Asignación simple (después de '==' de Victor y de los compuestos)
 def t_ASSIGN(t):
     r'='
     return t
 
-# Puntuación
 def t_SEMICOLON(t):
     r';'
     return t
@@ -213,7 +201,6 @@ def t_RBRACE(t):
     r'\}'
     return t
 
-# Conteo de líneas y caracteres ignorados
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)

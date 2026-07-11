@@ -62,3 +62,8 @@ Para que tengamos un orden usaremos tipos:
 
 # Ejecución de su algoritmo.cs
 `python src/lexer.py algoritmos/algoritmo[Número correspondiente].cs`
+
+# Pasos para instalar las librerias y ejecutar la interfaz
+`pip install ply`
+luego para ejecutar la interfaz debemos correr el siguiente comando:
+`python .\src\gui.py`
