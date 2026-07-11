@@ -20,6 +20,11 @@ def sem_error(msg, lineno=None):
     errores_semanticos.append(msg)
     print(msg)
 
+def declarar(nombre, tipo, lineno=None):
+    if nombre in symbol_table:
+        sem_error(f"Error Semántico: El tipo ya contiene una definición para '{nombre}'.", lineno)
+    symbol_table[nombre] = tipo
+
 # ── José Adrián – Precedencia de operadores ──────────────────
 precedence = (
     ('left',     'OR'),
@@ -86,9 +91,9 @@ def p_list_decl(p):
                  | LIST LT type GT ID SEMICOLON
                  | LIST ID SEMICOLON'''
     if len(p) == 15 or len(p) == 7:
-        symbol_table[p[5]] = f'List<{p[3]}>'
+        declarar(p[5], f'List<{p[3]}>', p.lineno(5))
     else:
-        symbol_table[p[2]] = 'List'
+        declarar(p[2], 'List', p.lineno(2))
 
 # ── Estructura de control: Switch ─────────────────────────────
 
@@ -214,7 +219,7 @@ def p_expr_atom(p):
 def p_dict_decl(p):
     '''dict_decl : ID LT type COMMA type GT ID ASSIGN NEW ID LT type COMMA type GT LPAREN RPAREN SEMICOLON
                  | ID LT type COMMA type GT ID SEMICOLON'''
-    symbol_table[p[7]] = f'Dictionary<{p[3]},{p[5]}>'
+    declarar(p[7], f'Dictionary<{p[3]},{p[5]}>', p.lineno(7))
 
 # ── Andrés Saltos: Estructura de control if / else ────────────
 # Reconoce 'if (expr) { stmt_list } else { stmt_list }' y la variante sin else.
@@ -260,14 +265,14 @@ def p_while_stmt(p):
 def p_array_decl(p):
     '''array_decl : type LBRACKET RBRACKET ID ASSIGN NEW type LBRACKET expr RBRACKET SEMICOLON
                   | type LBRACKET RBRACKET ID SEMICOLON'''
-    symbol_table[p[4]] = p[1] + '[]'
+    declarar(p[4], p[1] + '[]', p.lineno(4))
 
 def p_var_decl(p):
     '''var_decl : type ID ASSIGN expr SEMICOLON
                 | type ID SEMICOLON'''
     tipo_declarado = p[1]
     nombre_var = p[2]
-    symbol_table[nombre_var] = tipo_declarado
+    declarar(nombre_var, tipo_declarado, p.lineno(2))
     if len(p) == 6:  # tiene asignación
         tipo_expr = p[4] if isinstance(p[4], str) else None
         if tipo_declarado == 'int' and tipo_expr == 'decimal':       # Victor (NO eliminar)
