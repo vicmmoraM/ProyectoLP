@@ -127,6 +127,7 @@ def p_stmt_list(p):
 
 def p_stmt(p):
     '''stmt : ID ASSIGN expr SEMICOLON
+            | ID LBRACKET expr RBRACKET ASSIGN expr SEMICOLON
             | expr SEMICOLON
             | switch_stmt
             | list_decl
@@ -143,10 +144,14 @@ def p_stmt(p):
     if p.slice[1].type == 'RETURN':
         tipo_retorno = p[2] if isinstance(p[2], str) else None
         if current_return_type == 'bool' and tipo_retorno != 'bool':
-            sem_error("Error Semántico: El tipo de valor devuelto por la función no coincide con el tipo 'bool'.")
+            sem_error("Error Semántico: El tipo de valor devuelto por la función no coincide con el tipo 'bool'.", p.lineno(1))
     if p.slice[1].type == 'BREAK':
         if loop_depth == 0:
             sem_error("Error Semántico: Ningún bucle o instrucción switch envolvente para abandonar o continuar.", p.lineno(1))
+    # Asignación indexada: arr[i] = expr / dict[clave] = expr
+    if p.slice[1].type == 'ID' and len(p) == 8:
+        if p[1] not in symbol_table:
+            sem_error(f"Error Semántico: La variable '{p[1]}' no existe en el contexto actual.", p.lineno(1))
     # Bloque de Andrés: reasignación ID = expr
     if p.slice[1].type == 'ID' and len(p) == 5:
         tipo_var = symbol_table.get(p[1], None)
@@ -174,7 +179,7 @@ def p_expr_binop(p):
     if op in ('TIMES', 'DIVIDE'):
         if tipo_izq == 'string' or tipo_der == 'string':
             op_sym = '*' if op == 'TIMES' else '/'
-            sem_error(f"Error Semántico: El operador '{op_sym}' no se puede aplicar a operandos del tipo 'string'.")
+            sem_error(f"Error Semántico: El operador '{op_sym}' no se puede aplicar a operandos del tipo 'string'.", p.lineno(2))
     if op in ('AND', 'OR', 'EQ', 'NEQ', 'LT', 'GT'):
         p[0] = 'bool'
     else:
@@ -269,9 +274,14 @@ def p_array_decl(p):
 
 def p_var_decl(p):
     '''var_decl : type ID ASSIGN expr SEMICOLON
-                | type ID SEMICOLON'''
-    tipo_declarado = p[1]
+                | type ID SEMICOLON
+                | VAR ID ASSIGN expr SEMICOLON'''
     nombre_var = p[2]
+    if p.slice[1].type == 'VAR':
+        tipo_inferido = p[4] if isinstance(p[4], str) else 'unknown'
+        declarar(nombre_var, tipo_inferido, p.lineno(2))
+        return
+    tipo_declarado = p[1]
     declarar(nombre_var, tipo_declarado, p.lineno(2))
     if len(p) == 6:  # tiene asignación
         tipo_expr = p[4] if isinstance(p[4], str) else None
